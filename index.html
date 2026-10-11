@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Számvitel Alapjai ZH Mestertréner | Interaktív Felkészítő</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="header-brand">
+        <span class="brand-badge">SZÁMVITEL ZH1</span>
+        <div class="header-title-box">
+          <h1>Mestertréner & Vizsgaszimulátor</h1>
+          <p>0-ról 100%-ra: Elmélet, Csapdák, Mérleg, Események, Eredménykimutatás</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Mode Switcher -->
+        <div class="mode-switcher" id="modeSwitcher">
+          <button type="button" class="mode-btn active" id="btnModePractice" onclick="setAppMode('practice')">
+            <span>🎓</span> Gyakorló Mód
+          </button>
+          <button type="button" class="mode-btn" id="btnModeExam" onclick="setAppMode('exam')">
+            <span>⏱️</span> ZH Szimuláció
+          </button>
+        </div>
+
+        <button type="button" class="btn-secondary" id="openDrawerBtn" onclick="toggleDrawer(true)">
+          <span>📑</span> Puskasáv
+        </button>
+
+        <button type="button" class="btn-secondary" id="resetProgressBtn" onclick="resetAllProgress()" title="Előrehaladás nullázása">
+          <span>🔄</span> Reset
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Global Progress Tracker Strip -->
+  <div class="progress-strip">
+    <div class="progress-container">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="globalProgressBar"></div>
+      </div>
+      <div class="progress-stats">
+        <div class="stat-item">Haladás: <span id="statAnswered">0</span> / <span id="statTotal">75</span></div>
+        <div class="stat-item">Helyes: <span id="statCorrect">0</span> (<span id="statAccuracy">0%</span>)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <nav class="nav-tabs-wrapper">
+    <div class="nav-tabs" role="tablist">
+      <button class="tab-btn active" data-tab="tab-theory" onclick="switchTab('tab-theory')">
+        <span>⚡ 1. Elmélet & Csapda-teszt</span>
+        <span class="tab-counter" id="counterTheory">0/20</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-classification" onclick="switchTab('tab-classification')">
+        <span>🏷️ 2. Mérlegtétel-besoroló</span>
+        <span class="tab-counter" id="counterClassification">0/32</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-transactions" onclick="switchTab('tab-transactions')">
+        <span>⚖️ 3. Gazdasági Események</span>
+        <span class="tab-counter" id="counterTransactions">0/18</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-calculations" onclick="switchTab('tab-calculations')">
+        <span>🧮 4. Számítások & Mérlegek</span>
+        <span class="tab-counter" id="counterCalculations">0/5</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-exam" onclick="switchTab('tab-exam')">
+        <span>🏆 5. Éles Próba-ZH</span>
+        <span class="tab-counter" id="counterExam">Szimulátor</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content Area -->
+  <main class="main-content">
+
+    <!-- TAB 1: ELMÉLET & CSAPDÁK -->
+    <section id="tab-theory" class="tab-panel active">
+      <div class="section-intro">
+        <div>
+          <h2>Elméleti Villámtréner & Csapdavadász</h2>
+          <p>20 tipikus beugró vizsgakérdés és definíciós csapda. Válaszolj, és nézd meg az indoklást!</p>
+        </div>
+        <div class="tip-pill">
+          <span>💡</span> Tipp: Figyelj a „tenyészállat”, „előlegek” és „leltár vs. mérleg” kérdésekre!
+        </div>
+      </div>
+
+      <!-- Quick Flashcards Accordion -->
+      <div style="margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <h3 style="font-size: 1.1rem; color: #fff;">🔑 Kulcsdefiníciók & Gyorsmemória kártyák</h3>
+          <button type="button" class="btn-secondary" onclick="toggleFlashcards()" id="flashcardToggleBtn">Kártyák megnyitása</button>
+        </div>
+        <div id="flashcardsContainer" style="display: none; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1rem;">
+          <!-- Dynamically populated via JS -->
+        </div>
+      </div>
+
+      <!-- Questions List -->
+      <div class="single-column-list" id="theoryQuestionsList">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- TAB 2: MÉRLEGTÉTEL-BESOROLÓ -->
+    <section id="tab-classification" class="tab-panel">
+      <div class="section-intro">
+        <div>
+          <h2>Mérlegtétel Besoroló Tréner (1. és 8. feladat)</h2>
+          <p>Sorold be a 32 tételt a 10 mérlegfőcsoportba! Egyetlen kattintás, azonnali magyarázattal.</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <button type="button" class="btn-secondary" onclick="filterClassification('all')">Összes</button>
+          <button type="button" class="btn-secondary" onclick="filterClassification('pending')">Hátralévő</button>
+          <button type="button" class="btn-secondary" onclick="filterClassification('wrong')">Tévesztett</button>
+        </div>
+      </div>
+
+      <div class="card-grid" id="classificationGrid">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- TAB 3: GAZDASÁGI ESEMÉNYEK -->
+    <section id="tab-transactions" class="tab-panel">
+      <div class="section-intro">
+        <div>
+          <h2>Gazdasági Események Típusmeghatározó Trénere</h2>
+          <p>Határozd meg az esemény típusát (4 alaptípus vagy 2 összetett), a mérlegfőösszegre gyakorolt hatást és a képletet!</p>
+        </div>
+        <div class="tip-pill">
+          <span>⚖️</span> Főösszeg csak az 1., 2. és összetett típusoknál változik!
+        </div>
+      </div>
+
+      <div class="single-column-list" id="transactionsList">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- TAB 4: SZÁMÍTÁSOK & MÉRLEGEK -->
+    <section id="tab-calculations" class="tab-panel">
+      <div class="section-intro">
+        <div>
+          <h2>Interaktív Mérleg- és Eredménykimutatás Számítások</h2>
+          <p>A gyakorló feladatgyűjtemény legfontosabb számpéldái. Töltsd ki az input mezőket (E Ft-ban), és ellenőrizd azonnal!</p>
+        </div>
+        <div class="tip-pill">
+          <span>🧮</span> Negatív szám esetén írj mínusz előjelet (pl. -3000)!
+        </div>
+      </div>
+
+      <div id="calculationsList">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- TAB 5: ÉLES PRÓBA-ZH SZIMULÁTOR -->
+    <section id="tab-exam" class="tab-panel">
+      <div class="exam-header">
+        <div>
+          <h2 style="font-size: 1.4rem; color: #fff; margin-bottom: 0.35rem;">🎓 Éles Próba-ZH Szimuláció (45 perc)</h2>
+          <p style="color: #cbd5e1; font-size: 0.9rem;">20 komplex vizsgafeladat: 5 elmélet, 6 besorolás, 5 esemény, 4 számítás. Nincs előre megmutatott segítség – a végén jegyet kapsz!</p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <div class="exam-timer" id="examTimerDisplay">
+            <span>⏱️</span> <span id="timerText">45:00</span>
+          </div>
+          <button type="button" class="btn-primary" id="startExamBtn" onclick="startExamSession()">
+            Új ZH Indítása
+          </button>
+        </div>
+      </div>
+
+      <div id="examActiveContainer" style="display: none;">
+        <div id="examQuestionsContainer" class="single-column-list" style="margin-bottom: 2rem;">
+          <!-- Dynamically populated exam items -->
+        </div>
+
+        <div style="text-align: center; margin-top: 2rem;">
+          <button type="button" class="btn-primary" style="font-size: 1.1rem; padding: 0.85rem 2.5rem;" onclick="submitExam()">
+            ✅ ZH Beadása és Kiértékelése
+          </button>
+        </div>
+      </div>
+
+      <div id="examResultContainer" style="display: none;">
+        <!-- Exam score & correction review -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Puskasáv Drawer Modal -->
+  <div class="drawer-backdrop" id="drawerBackdrop" onclick="handleBackdropClick(event)">
+    <div class="drawer-panel" id="drawerPanel">
+      <div class="drawer-header">
+        <h2 style="font-size: 1.25rem; font-weight: 700; color: #fff;">📑 Számvitel ZH Puskasáv</h2>
+        <button type="button" class="close-btn" onclick="toggleDrawer(false)">&times;</button>
+      </div>
+      <div class="drawer-body">
+        
+        <div class="cheat-section">
+          <h3>1. Mérlegséma (A–G)</h3>
+          <table class="cheat-table">
+            <thead>
+              <tr style="color: #94a3b8; text-align: left;">
+                <th>Eszközök (Aktívák)</th>
+                <th>Források (Passzívák)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="cheat-badge">A</span> <strong>Befektetett eszközök</strong><br>I. Immateriális javak<br>II. Tárgyi eszközök<br>III. Befektetett pü. eszközök<br>IV. Halasztott adókövetelés</td>
+                <td><span class="cheat-badge">D</span> <strong>Saját tőke</strong><br>I. Jegyzett tőke (+)<br>II. Jegyzett be nem fiz. (-)<br>III. Tőketartalék (+)<br>IV. Eredménytartalék (±)<br>V. Lekötött tartalék (+)<br>VI. Értékelési tartalék (+)<br>VII. Adózott eredmény (±)</td>
+              </tr>
+              <tr>
+                <td><span class="cheat-badge">B</span> <strong>Forgóeszközök</strong><br>I. Készletek<br>II. Követelések<br>III. Értékpapírok<br>IV. Pénzeszközök</td>
+                <td><span class="cheat-badge">E</span> <strong>Céltartalékok</strong> (Adózás előtti terhére)</td>
+              </tr>
+              <tr>
+                <td><span class="cheat-badge">C</span> <strong>Aktív időbeli elhat.</strong><br>1. Bevételek AIE<br>2. Költségek AIE<br>3. Halasztott ráfordítások</td>
+                <td><span class="cheat-badge">F</span> <strong>Kötelezettségek</strong><br>I. Hátrasorolt<br>II. Hosszú lejáratú (&gt;1 év)<br>III. Rövid lejáratú (&le;1 év)</td>
+              </tr>
+              <tr>
+                <td></td>
+                <td><span class="cheat-badge">G</span> <strong>Passzív időbeli elhat.</strong><br>1. Bevételek PIE<br>2. Költségek PIE<br>3. Halasztott bevételek</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="cheat-section">
+          <h3>2. Gazdasági Események 4+2 Képlete</h3>
+          <table class="cheat-table">
+            <tbody>
+              <tr><td><strong>1. Eszközbevonás:</strong></td><td><code>A + x = P + x</code> (Főösszeg nő)</td></tr>
+              <tr><td><strong>2. Eszközkivonás:</strong></td><td><code>A – x = P – x</code> (Főösszeg csökken)</td></tr>
+              <tr><td><strong>3. Eszközök körforgása:</strong></td><td><code>A + x – x = P</code> (Főösszeg változatlan)</td></tr>
+              <tr><td><strong>4. Források változása:</strong></td><td><code>A = P + x – x</code> (Főösszeg változatlan)</td></tr>
+              <tr><td><strong>Körforgás + bevonás:</strong></td><td><code>A + x – y = P + (x – y)</code> (Nyereség, saját tőke nő)</td></tr>
+              <tr><td><strong>Körforgás + kivonás:</strong></td><td><code>A + x – y = P – (y – x)</code> (Veszteség, saját tőke csökken)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="cheat-section">
+          <h3>3. Eredménykategóriák Lépései</h3>
+          <p style="font-size: 0.85rem; line-height: 1.6; color: #cbd5e1;">
+            <strong>A. Üzemi (üzleti) eredmény:</strong> Hozamok – Költségek/ráfordítások<br>
+            <strong>B. Pénzügyi műveletek eredménye:</strong> Pü. bevételek – Pü. ráfordítások<br>
+            <strong>C. Adózás előtti eredmény:</strong> ± A ± B<br>
+            <strong>X. Adófizetési kötelezettség:</strong> Általában 9% társasági adó<br>
+            <strong>D. Adózott eredmény:</strong> C – X
+          </p>
+        </div>
+
+        <div class="cheat-section">
+          <h3>4. Leggyakoribb 8 Egyetemi Csapda</h3>
+          <ul style="font-size: 0.825rem; line-height: 1.6; padding-left: 1.25rem; color: #fca5a5;">
+            <li><strong>Tenyészállat:</strong> Tárgyi eszköz (tartós). <strong>Hízó- és növendékállat:</strong> Mindig Készlet!</li>
+            <li><strong>Bérleti jog / vagyoni értékű jog:</strong> Ha ingatlanhoz kapcsolódik, Tárgyi eszköz! Csak ha független tőle, akkor Immateriális jószág.</li>
+            <li><strong>Adott előleg:</strong> Annál az eszköznél szerepel, amire adtuk (gép előleg: Tárgyi; készlet előleg: Forgó; szoftver előleg: Immateriális).</li>
+            <li><strong>Kapott előleg:</strong> Mindig Rövid lejáratú kötelezettség!</li>
+            <li><strong>Saját üzletrész:</strong> Forgóeszközök közötti Értékpapírok!</li>
+            <li><strong>Saját tőke negatív elemei:</strong> Csak a jegyzett be nem fizetett tőke (-), az eredménytartalék (±) és az adózott eredmény (±) lehet negatív.</li>
+            <li><strong>Céltartalék:</strong> Az adózás előtti eredmény terhére képzik (költség/ráfordítás), forrásoldalon áll!</li>
+            <li><strong>Leltár vs. Mérleg:</strong> A leltár mennyiségben és értékben, tételesen mutat; a mérleg csak pénzértékben, összevontan!</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- App Footer with Mandatory E-Brolo link & Notice -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <div>
+        &copy; 2026 <a href="https://ebrolo.hu/" target="_blank" rel="noopener noreferrer" class="text-accent font-semibold hover:underline">E-Brolo</a>. Minden jog fenntartva.
+      </div>
+      <div class="footer-demo-badge">
+        Ez a weboldal bemutató célú mintaweboldal, amelyet az E-Brolo fejlesztett.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+.vercel
+node_modules
+*.log
+.system_generated
+*_extracted.txt
+

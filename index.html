@@ -119,13 +119,54 @@
     <section id="tab-classification" class="tab-panel">
       <div class="section-intro">
         <div>
-          <h2>Mérlegtétel Besoroló Tréner (1. és 8. feladat)</h2>
-          <p>Sorold be a 32 tételt a 10 mérlegfőcsoportba! Egyetlen kattintás, azonnali magyarázattal.</p>
+          <h2>Mérlegtétel Besoroló Tréner & Tudástár</h2>
+          <p>Mérlegsorok, főcsoportok és tételek felismerése 0-ról. Olvasd el a tananyagot, vagy ugorj egyből a gyakorlásra!</p>
         </div>
-        <div style="display: flex; gap: 0.5rem; align-items: center;">
-          <button type="button" class="btn-secondary" onclick="filterClassification('all')">Összes</button>
+        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+          <button type="button" class="btn-primary" onclick="toggleKnowledgeBase()" id="btnToggleKB">
+            <span>📚</span> Mérleg Tudástár (Tananyag 0-ról)
+          </button>
+          <button type="button" class="btn-secondary" onclick="filterClassification('all')">Összes (32)</button>
           <button type="button" class="btn-secondary" onclick="filterClassification('pending')">Hátralévő</button>
           <button type="button" class="btn-secondary" onclick="filterClassification('wrong')">Tévesztett</button>
+        </div>
+      </div>
+
+      <!-- DEDIKÁLT MÉRLEG TUDÁSTÁR SZEKCIÓ (0-RÓL TANULÓKNAK) -->
+      <div id="knowledgeBaseSection" style="display: none; margin-bottom: 2.5rem; background: var(--bg-surface); border: 2px solid var(--accent-primary); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--shadow-lg);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <h3 style="font-size: 1.25rem; color: #fff; font-weight: 700;">📖 Mérleg Tudástár & Soronkénti Kalauz</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Melyik főcsoportba mik tartoznak, mik az aranyszabályok, és hol vannak a vizsgacsapdák?</p>
+          </div>
+          <div style="display: flex; gap: 0.4rem;">
+            <button type="button" class="btn-secondary" onclick="filterKB('all')" id="kbFilterAll">Mind a 10 főcsoport</button>
+            <button type="button" class="btn-secondary" onclick="filterKB('eszkoz')" id="kbFilterAssets">Eszközök (A–C)</button>
+            <button type="button" class="btn-secondary" onclick="filterKB('forras')" id="kbFilterLiab">Források (D–G)</button>
+          </div>
+        </div>
+
+        <div id="knowledgeBaseCardsGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.25rem;">
+          <!-- Dynamically populated via JS -->
+        </div>
+      </div>
+
+      <!-- KATEGÓRIA JELMAGYARÁZAT CSÍK -->
+      <div style="margin-bottom: 1.5rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.85rem 1.25rem;">
+        <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; margin-bottom: 0.5rem; letter-spacing: 0.5px;">
+          Gombok Jelmagyarázata (10 Mérlegfőcsoport):
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; font-size: 0.8rem;">
+          <span class="cheat-badge">IMM</span> Immateriális javak (A/I) • 
+          <span class="cheat-badge">TARGYI</span> Tárgyi eszközök (A/II) • 
+          <span class="cheat-badge">BPU</span> Bef. pénzügyi eszközök (A/III) • 
+          <span class="cheat-badge">FORGO</span> Forgóeszközök (B/I-IV) • 
+          <span class="cheat-badge">AIE</span> Aktív időbeli elhat. (C) • 
+          <span class="cheat-badge" style="background:rgba(16,185,129,0.2); color:#6ee7b7;">TOKE</span> Saját tőke (D) • 
+          <span class="cheat-badge" style="background:rgba(245,158,11,0.2); color:#fde68a;">CELTART</span> Céltartalék (E) • 
+          <span class="cheat-badge" style="background:rgba(239,68,68,0.2); color:#fca5a5;">HLK</span> Hosszú lej. köt. (F/II) • 
+          <span class="cheat-badge" style="background:rgba(239,68,68,0.2); color:#fca5a5;">RLK</span> Rövid lej. köt. (F/III) • 
+          <span class="cheat-badge">PIE</span> Passzív időbeli elhat. (G)
         </div>
       </div>
 

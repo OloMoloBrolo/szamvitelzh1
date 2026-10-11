@@ -188,8 +188,100 @@ function answerTheoryQuestion(id, chosen) {
   updateGlobalStats();
 }
 
-// 2. MODUL: MÉRLEGTÉTEL-BESOROLÓ
+// 2. MODUL: MÉRLEGTÉTEL-BESOROLÓ & TUDÁSTÁR
 let currentClassificationFilter = "all";
+let currentKBFilter = "all";
+const expandedDecisionTrees = new Set();
+
+function toggleKnowledgeBase() {
+  const section = document.getElementById("knowledgeBaseSection");
+  const btn = document.getElementById("btnToggleKB");
+  const isHidden = section.style.display === "none";
+  section.style.display = isHidden ? "block" : "none";
+  btn.innerHTML = isHidden ? "<span>❌</span> Tudástár Bezárása" : "<span>📚</span> Mérleg Tudástár (Tananyag 0-ról)";
+  if (isHidden) {
+    renderBalanceKnowledgeBase(currentKBFilter);
+  }
+}
+
+function filterKB(filterType) {
+  currentKBFilter = filterType;
+  document.getElementById("kbFilterAll").classList.toggle("active", filterType === "all");
+  document.getElementById("kbFilterAssets").classList.toggle("active", filterType === "eszkoz");
+  document.getElementById("kbFilterLiab").classList.toggle("active", filterType === "forras");
+  renderBalanceKnowledgeBase(filterType);
+}
+
+function renderBalanceKnowledgeBase(filter = "all") {
+  const container = document.getElementById("knowledgeBaseCardsGrid");
+  if (!container) return;
+
+  let categories = SZAMVITEL_DATA.balanceCategories;
+  if (filter === "eszkoz") {
+    categories = categories.filter(c => ["IMM", "TARGYI", "BPU", "FORGO", "AIE"].includes(c.code));
+  } else if (filter === "forras") {
+    categories = categories.filter(c => ["TOKE", "CELTART", "HLK", "RLK", "PIE"].includes(c.code));
+  }
+
+  container.innerHTML = categories.map(cat => `
+    <div class="kb-card" id="kb-card-${cat.code}">
+      <div class="kb-card-header">
+        <span class="cheat-badge" style="font-size:0.9rem; padding:0.3rem 0.6rem;">${cat.badge}</span>
+        <h4 style="font-size: 1.1rem; color: #fff; margin:0;">${cat.name}</h4>
+      </div>
+      <div class="kb-side-pill">${cat.side}</div>
+      <p class="kb-summary">${cat.summary}</p>
+
+      <div style="margin-bottom: 0.75rem;">
+        <strong style="color: #93c5fd; font-size: 0.8rem; text-transform: uppercase;">Aranyszabályok a felismeréshez:</strong>
+        <ul class="kb-rules-list">
+          ${cat.rules.map(r => `<li>${r}</li>`).join("")}
+        </ul>
+      </div>
+
+      <div style="margin-bottom: 0.75rem;">
+        <strong style="color: #6ee7b7; font-size: 0.8rem; text-transform: uppercase;">Mérlegsorok és tipikus példák:</strong>
+        <ul class="kb-lines-list">
+          ${cat.exactLines.map(l => `<li>${l}</li>`).join("")}
+        </ul>
+      </div>
+
+      ${cat.traps && cat.traps.length > 0 ? `
+        <div class="kb-traps-box">
+          <strong style="color: #fca5a5; font-size: 0.8rem; text-transform: uppercase;">Tipikus vizsgacsapdák:</strong>
+          <ul style="padding-left: 1rem; margin-top: 0.25rem;">
+            ${cat.traps.map(t => `<li>${t}</li>`).join("")}
+          </ul>
+        </div>
+      ` : ''}
+    </div>
+  `).join("");
+}
+
+function scrollToKB(categoryCode) {
+  const section = document.getElementById("knowledgeBaseSection");
+  if (section.style.display === "none") {
+    toggleKnowledgeBase();
+  }
+  filterKB("all");
+  setTimeout(() => {
+    const el = document.getElementById(`kb-card-${categoryCode}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el.classList.add("highlight-pulse");
+      setTimeout(() => el.classList.remove("highlight-pulse"), 2500);
+    }
+  }, 100);
+}
+
+function toggleDecisionTree(itemId) {
+  if (expandedDecisionTrees.has(itemId)) {
+    expandedDecisionTrees.delete(itemId);
+  } else {
+    expandedDecisionTrees.add(itemId);
+  }
+  renderClassificationGrid(currentClassificationFilter);
+}
 
 function filterClassification(filter) {
   currentClassificationFilter = filter;
@@ -218,6 +310,9 @@ function renderClassificationGrid(filter = "all") {
 
   container.innerHTML = items.map(item => {
     const userState = APP_STATE.classificationAnswers[item.id];
+    const isDTHidden = !expandedDecisionTrees.has(item.id);
+    const catObj = SZAMVITEL_DATA.balanceCategories.find(c => c.code === item.category);
+
     let cardClass = "learning-card";
     if (userState) {
       cardClass += userState.isCorrect ? " answered-correct" : " answered-wrong";
@@ -230,8 +325,26 @@ function renderClassificationGrid(filter = "all") {
           ${userState ? `<span style="font-weight:700; color: ${userState.isCorrect ? 'var(--success)' : 'var(--danger)'}">
             ${userState.isCorrect ? '✓ HELYES' : '✗ HIBÁS'}</span>` : ''}
         </div>
-        <div class="card-question" style="min-height: 48px;">${item.name}</div>
+        
+        <div class="card-question" style="min-height: 44px; margin-bottom: 0.5rem;">
+          ${item.name}
+        </div>
 
+        <!-- 3-LÉPÉSES DÖNTÉSI ÚTMUTATÓ 0-RÓL INDULÓKNAK -->
+        <div style="margin-bottom: 0.85rem;">
+          <button type="button" class="btn-decision-toggle" onclick="toggleDecisionTree(${item.id})">
+            <span>💡</span> ${isDTHidden ? 'Hogyan döntsd el? (3 lépéses gondolatmenet)' : 'Gondolatmenet elrejtése'}
+          </button>
+          
+          <div class="decision-tree-panel" style="display: ${isDTHidden ? 'none' : 'block'};">
+            <strong style="color: #fbbf24; font-size: 0.8rem; display:block; margin-bottom: 0.35rem;">Logikai levezetés:</strong>
+            <ul style="padding-left: 1.15rem; font-size: 0.825rem; color: #cbd5e1; line-height: 1.5;">
+              ${item.decisionTree ? item.decisionTree.map(step => `<li>${step}</li>`).join("") : ''}
+            </ul>
+          </div>
+        </div>
+
+        <!-- 10 FŐCSOPORT GOMB -->
         <div class="category-pill-grid">
           ${SZAMVITEL_DATA.balanceCategories.map(cat => {
             let btnClass = "cat-btn";
@@ -243,17 +356,41 @@ function renderClassificationGrid(filter = "all") {
               }
             }
             return `
-              <button type="button" class="${btnClass}" onclick="answerClassificationItem(${item.id}, '${cat.code}')" title="${cat.side}">
+              <button type="button" class="${btnClass}" onclick="answerClassificationItem(${item.id}, '${cat.code}')" title="${cat.name} (${cat.side})">
                 ${cat.code}
               </button>
             `;
           }).join("")}
         </div>
 
+        <!-- GAZDAG, MÉLY VISSZAJELZŐ DOBOZ -->
         ${userState ? `
-          <div class="feedback-box ${userState.isCorrect ? 'correct' : 'wrong'}">
-            <strong>Helyes főcsoport: ${SZAMVITEL_DATA.balanceCategories.find(c => c.code === item.category)?.name} (${item.category})</strong>
-            <div>${item.note}</div>
+          <div class="feedback-box ${userState.isCorrect ? 'correct' : 'wrong'}" style="margin-top: 1rem;">
+            <div style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.4rem; display: flex; justify-content: space-between; align-items: center;">
+              <span>Helyes: ${catObj ? catObj.name : item.category} (${catObj ? catObj.badge : item.category})</span>
+            </div>
+            
+            <div style="font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.5rem; color: #f1f5f9;">
+              <strong>Miért ide tartozik?</strong> ${item.detailedWhy || item.note}
+            </div>
+
+            ${item.confusedWith ? `
+              <div class="kb-confused-alert">
+                <span>⚠️</span> <div><strong>Gyakori hiba:</strong> ${item.confusedWith}</div>
+              </div>
+            ` : ''}
+
+            ${item.trapAlert ? `
+              <div class="kb-trap-alert">
+                ${item.trapAlert}
+              </div>
+            ` : ''}
+
+            <div style="margin-top: 0.75rem; text-align: right;">
+              <button type="button" class="btn-kb-link" onclick="scrollToKB('${item.category}')">
+                📖 Nézd meg a(z) ${catObj ? catObj.name : ''} szabályait a Tudástárban &rarr;
+              </button>
+            </div>
           </div>
         ` : ''}
       </div>
